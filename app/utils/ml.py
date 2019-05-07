@@ -18,23 +18,33 @@ class MLProcess(object):
     start = time.time()
     self.file = file
     self.data = self.loadata()
-    self.format = '$remote_addr - - [$timestamp] "$request" $status $bytes "$refferer" "$user_agent" "$cookie"'
+    self.format = self.autoformat()
     self.pattern = self.build_pattern(self.format)
+    self.here = os.path.dirname(os.path.abspath(__file__))
+    self.reader_country = geoip2.database.Reader(os.path.join(self.here, "GeoLite2-Country.mmdb"))
     self.parsedata = list(self.parse(self.data, self.pattern))
     self.features = self.preprocess(self.parsedata)
-    self.result = self.prediction()
-    self.here = os.path.dirname(os.path.abspath(__file__))
-    self.savedata = None
+    self.country = {}
+
+  def autoformat(self):
+    test = self.data.split('\n')[0]
+    common = '$remote_addr - - [$timestamp] "$request" $status $bytes'
+    combine = '$remote_addr - - [$timestamp] "$request" $status $bytes "$refferer" "$user_agent"'
+    withcokie = '$remote_addr - - [$timestamp] "$request" $status $bytes "$refferer" "$user_agent" "$cookie"'
+    if self.build_pattern(withcokie).match(test):
+      return withcokie
+    elif self.build_pattern(combine).match(test):
+      return combine
+    elif self.build_pattern(common).match(test):
+      return common
+    return None
   
   def getResult(self):
     # print(self.features[0])
     # print(self.parsedata)
     # return self.prediction()
-    return self.result
+    return self.prediction()
     # return self.load()
-
-  def getCSV(self):
-    return self.savedata
   
   def load(self):
     _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -51,13 +61,8 @@ class MLProcess(object):
     logs = data.decode('utf-8')
     return logs
   
-  def get_country(sef,ip):
-    path = os.path.join(self.here, "GeoLite2-Country.mmdb")
-    reader_country = geoip2.database.Reader(path)
-    try:
-      return reader_country.country(ip).country.iso_code
-    except AddressNotFoundError:
-      return False
+  def get_country(self, ip):
+    return self.reader_country.country(ip).country.iso_code
   
   def build_pattern(self, log_format):
     REGEX_SPECIAL_CHARS = r'([\.\*\+\?\|\(\)\{\}\[\]])'
@@ -70,24 +75,24 @@ class MLProcess(object):
     for count, line in enumerate(data.split('\n')):
       line = line.strip()
       if line:
-        try:
-          match = pattern.match(line)
-          item = match.groupdict()
-          item['status'] = int(item['status'])
-          item['bytes'] = int(item['bytes'])
-          match = re.match('^(\w+)\s?(.*?)\s?(HTTP/\d{1}.\d{1})$', item['request'])
-          if match:
-            item['method'], item['url'], item['version'] = match.groups()
-            del item['request']
-          else:
-            item['method'] = '-'
-            item['url'] = '/'
-            item['version'] = '-'
-            del item['request']
-          yield item
-        except:
-          print('error',line)
-          break
+        match = pattern.match(line)
+        item = match.groupdict()
+        item['status'] = int(item['status'])
+        item['bytes'] = int(item['bytes'])
+        match = re.match('^(\w+)\s+(.*?)\s+(.*?)$', item['request'])
+        if match:
+          item['method'], item['url'], item['version'] = match.groups()
+          del item['request']
+        yield item
+          # print(self.get_country(item['remote_addr']))
+        # if item['remote_addr'] in self.country:
+        #   item['country'] = self.country[item['remote_addr']]
+        # else:
+        #   new_country = self.get_country(item['remote_addr'])
+        #   item['country'] = new_country
+        #   self.country[item['remote_addr']] = new_country
+        
+        
 
   # status class = [200, 300, 400, 500]
   def fill_status(self, x):

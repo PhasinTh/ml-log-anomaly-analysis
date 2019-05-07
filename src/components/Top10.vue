@@ -2,14 +2,14 @@
   <div>
     <v-layout row wrap>
       <v-flex xs6 pr-2>
-        <v-card  height="450">
+        <v-card  height="490">
           <v-card-text>
             <apexchart type=donut width="100%"  height="360"  :options="chartOptions" :series="attack_type" />
           </v-card-text>
         </v-card>
       </v-flex>
       <v-flex xs6 pl-2>
-        <v-card height="450">
+        <v-card height="490">
           <v-layout row wrap justify-center>
             <v-card-title primary-title>
               <h3>Top 10 Suspected IP</h3>
@@ -138,7 +138,8 @@ export default {
           attacker.push({ ip: key, count: element })
         }
       }
-      attacker.sort((a, b) => (a.count < b.count) ? 1 : ((b.count > a.count) ? -1 : 0))
+      // console.log(attacker)
+      attacker.sort((a, b) => b.count - a.count)
       attacker.forEach((x, i) => x['rank'] = i + 1)
       return attacker.slice(0, 10)
     }

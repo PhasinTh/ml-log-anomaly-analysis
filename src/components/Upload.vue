@@ -23,6 +23,14 @@
         </v-card-text>
       </v-card>
     </v-flex>
+    <v-dialog v-model="loading" hide-overlay persistent width="300">
+    <v-card color="primary" dark>
+      <v-card-text>
+        Please stand by
+        <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
   </v-layout>
 </template>
 
@@ -32,6 +40,11 @@ import axios from 'axios'
 
 export default {
   name: 'upload',
+  data() {
+    return {
+      loading: false
+    }
+  },
   methods: {
     filePicker () {
       this.$refs.file.click()
@@ -47,12 +60,16 @@ export default {
     },
     upload (file) {
       let start = performance.now()
+      this.loading = true
       $backend.uploadFile(file)
         .then(response => {
           console.log(performance.now() - start)
-          // console.log(response)
-          let data = JSON.parse(response.data)
-          this.$store.commit('setLogs', data)
+          console.log(response)
+          this.loading = false
+          if (response.data) {
+            let data = JSON.parse(response.data)
+            this.$store.commit('setLogs', data)
+          }
         })
     }
   }

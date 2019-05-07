@@ -30,6 +30,7 @@
     <v-layout row wrap justify-space-between mt-3>
         <v-switch label="Hilight" v-model="hilight" ></v-switch>
         <v-switch label="Show only anomaly" v-model="onlyanomaly" ></v-switch>
+        <v-btn color="info darken-1"  @click="save_csv">Export</v-btn>
         <v-flex xs6 pl-3>
           <v-text-field
             v-model="search"
@@ -40,7 +41,6 @@
           ></v-text-field>
         </v-flex>
       </v-layout>
-
     <v-data-table
       :headers="headers"
       :items="logs"
@@ -75,7 +75,72 @@ export default {
     // console.log(this.client.country)
   },
   methods: {
+    convertToCSV (objArray) {
+      var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
+      var str = '';
+      for (var i = 0; i < array.length; i++) {
+        var line = '';
+        for (var index in array[i]) {
+            if (line != '') line += ','
 
+            line += array[i][index];
+        }
+
+        str += line + '\r\n';
+      }
+      return str;
+    },
+    exportCSVFile(headers, items, fileTitle) {
+      if (headers) {
+        items.unshift(headers);
+      }
+
+      // Convert Object to JSON
+      let jsonObject = JSON.stringify(items)
+      let csv = this.convertToCSV(jsonObject)
+
+      let exportedFilenmae = fileTitle + '.csv' || 'export.csv'
+
+      let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+
+      if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+      } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) { // feature detection
+            // Browsers that support HTML5 download attribute
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+      }
+
+    },
+    save_csv () {
+      let headers = this.headers.map(x => x.text)
+      let itemsFormatted = []
+
+      this.logs.forEach(x => {
+        itemsFormatted.push({
+          line: x.line,
+          timestamp: x.timestamp,
+          remote_addr: x.remote_addr,
+          method: x.method,
+          url: x.url,
+          version: x.version,
+          status: x.status,
+          bytes: x.bytes,
+          class: x.class
+        })
+      })
+
+      let fileTitle = 'log_'+ this.client.remote_addr +'.csv'
+      this.exportCSVFile(headers, itemsFormatted, fileTitle)
+    }
   },
   props: ['client'],
   components: {
@@ -132,7 +197,7 @@ export default {
         ['Thailand']
       ],
       chartOptions: {
-        height: 200, region: 'TH'
+        height: 200, region: 'TH', width: '100%'
       }
     }
   },
