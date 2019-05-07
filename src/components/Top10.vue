@@ -106,19 +106,19 @@ export default {
   methods: {
     detail (ip) {
       this.host_ip = ip
-      this.focus_log = this.logs.filter(x => x.Remote_host == ip)[0]
+      this.focus_log = this.logs.filter(x => x.remote_addr == ip)[0]
       this.dialog = true
     }
   },
   computed: {
     uniqueIP () {
-      return [...new Set(this.logs.map(x => x.Remote_host))]
+      return [...new Set(this.logs.map(x => x.remote_addr))]
     },
     attack_type () {
       let test = []
       this.attack_total = this.logs.filter(function (x) {
-        test[x.Label] = test[x.Label] >= 0 ? test[x.Label] += 1 : 0
-        return x.Label > 0
+        test[x.class] = test[x.class] >= 0 ? test[x.class] += 1 : 0
+        return x.class > 0
       }).length
       this.$store.state.total_attack = this.attack_total
       return test.slice(1)
@@ -127,10 +127,10 @@ export default {
       let attacker = []
       let temp = {}
       this.logs.forEach(x => {
-        if (x.Label > 0) {
-          temp[x.Remote_host] = temp[x.Remote_host] >= 0 ? temp[x.Remote_host] += 1 : 0
+        if (x.class > 0) {
+          temp[x.remote_addr] = temp[x.remote_addr] >= 0 ? temp[x.remote_addr] += 1 : 0
         }
-        // temp[x.Remote_host] = temp[x.Remote_host] >= 0 ? temp[x.Remote_host] += 1 : 0 // test
+        // temp[x.remote_addr] = temp[x.remote_addr] >= 0 ? temp[x.remote_addr] += 1 : 0 // test
       })
       for (const key in temp) {
         if (temp.hasOwnProperty(key)) {

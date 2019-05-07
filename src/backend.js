@@ -2,8 +2,9 @@ import axios from 'axios'
 
 let $axios = axios.create({
   baseURL: '/api/',
-  timeout: 1000 * 60 * 10,
-  headers: { 'Content-Type': 'application/json' }
+  timeout: 1000 * 60 * 60 * 60,
+  maxContentLength: 1024 * 1024 * 1024 * 1024
+  // headers: { 'Content-Type': 'application/json' }
 })
 
 // Request Interceptor
@@ -38,5 +39,12 @@ export default {
     formData.append('file', data)
     return $axios.post('uploadfile', formData)
       .then(response => response.data)
+  },
+
+  downloadFile (ip) {
+    if (ip !== '') {
+      return $axios.post('download/' + ip)
+    }
+    return $axios.post('download')
   }
 }

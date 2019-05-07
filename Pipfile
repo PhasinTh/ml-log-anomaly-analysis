@@ -11,6 +11,9 @@ flask = "*"
 pandas = "*"
 uwsgi = "*"
 sklearn = "*"
+geoip2 = "*"
+ua-parser = "*"
+joblib = "*"
 
 [dev-packages]
 pytest = "*"

@@ -28,6 +28,8 @@
 
 <script>
 import $backend from '../backend'
+import axios from 'axios'
+
 export default {
   name: 'upload',
   methods: {
@@ -48,8 +50,9 @@ export default {
       $backend.uploadFile(file)
         .then(response => {
           console.log(performance.now() - start)
-          console.log(response)
-          this.$store.commit('setLogs', JSON.parse(response.data))
+          // console.log(response)
+          let data = JSON.parse(response.data)
+          this.$store.commit('setLogs', data)
         })
     }
   }

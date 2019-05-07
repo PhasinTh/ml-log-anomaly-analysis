@@ -5,13 +5,13 @@
         <v-card height="280">
           <v-card-text>
             <h3>IP Address</h3>
-            <v-chip v-if="client"></v-chip>
+            <v-chip v-if="client">{{ client.remote_addr }}</v-chip>
             <v-divider></v-divider>
             <h3>Browser</h3>
-            <v-chip v-if="client"></v-chip>
+            <v-chip v-if="client">{{ user_agent.browser.name + ' ' +user_agent.browser.version }}</v-chip>
             <v-divider></v-divider>
             <h3>Operating System</h3>
-            <v-chip v-if="client"></v-chip>
+            <v-chip v-if="client">{{ user_agent.os.name + ' ' +user_agent.os.version}}</v-chip>
             <v-divider></v-divider>
           </v-card-text>
         </v-card>
@@ -19,7 +19,7 @@
       <v-flex xs5 pl-3>
         <v-card height="280">
           <v-card-title>
-            <h3>Country:</h3> <h4>Thailand</h4>
+            <h3>Country:</h3> <h4 v-if="client"> Thailand</h4>
           </v-card-title>
           <v-card-text>
             <GChart type="GeoChart" :data="chartData" :options="chartOptions" :resizeDebounce="500" />
@@ -28,7 +28,8 @@
       </v-flex>
     </v-layout>
     <v-layout row wrap justify-space-between mt-3>
-        <v-switch label="Prediction" v-model="hilight" ></v-switch>
+        <v-switch label="Hilight" v-model="hilight" ></v-switch>
+        <v-switch label="Show only anomaly" v-model="onlyanomaly" ></v-switch>
         <v-flex xs6 pl-3>
           <v-text-field
             v-model="search"
@@ -39,6 +40,7 @@
           ></v-text-field>
         </v-flex>
       </v-layout>
+
     <v-data-table
       :headers="headers"
       :items="logs"
@@ -49,16 +51,16 @@
       <template
       slot="items"
       slot-scope="props">
-      <tr v-bind:class="[props.item.Label > 0 ? 'anomaly' : '']">
-        <td>{{ props.index }}</td>
-        <td>{{ props.item.Date_time }}</td>
-        <td >{{ props.item.Remote_host }}</td>
-        <td>{{ props.item.Method }}</td>
-        <td class="text-xs-left">{{ props.item.Path }}</td>
-        <td>{{ props.item.Version }}</td>
-        <td>{{ props.item.Status }}</td>
-        <td>{{ props.item.Length }}</td>
-        <td>{{ props.item.Label }}</td>
+      <tr v-bind:class="[(props.item.class > 0 && hilight) > 0 ? 'anomaly' : '']">
+        <td>{{ props.item.line }}</td>
+        <td>{{ props.item.timestamp }}</td>
+        <td >{{ props.item.remote_addr }}</td>
+        <td>{{ props.item.method }}</td>
+        <td class="text-xs-left">{{ props.item.url }}</td>
+        <td>{{ props.item.version }}</td>
+        <td>{{ props.item.status }}</td>
+        <td>{{ props.item.bytes }}</td>
+        <td>{{ props.item.class }}</td>
       </tr>
       </template>
     </v-data-table>
@@ -66,10 +68,14 @@
 </template>
 <script>
 import { GChart } from 'vue-google-charts'
+import axios from 'axios'
 const parser = require('ua-parser-js')
 export default {
   mounted () {
-    console.log(parser('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.2 (KHTML, like Gecko) Ubuntu/11.10 Chromium/15.0.874.106 Chrome/15.0.874.106 Safari/535.2'))
+    // console.log(this.client.country)
+  },
+  methods: {
+
   },
   props: ['client'],
   components: {
@@ -78,6 +84,9 @@ export default {
   data () {
     return {
       hilight: true,
+      onlyanomaly: false,
+      country: 'Thailand',
+      region: 'TH',
       search: '',
       pagination: { rowsPerPage: 10 },
       headers: [
@@ -86,36 +95,36 @@ export default {
           value: 'index'
         },
         {
-          text: 'Date_time',
-          value: 'Date_time'
+          text: 'Timestamp',
+          value: 'timestamp'
         },
         {
-          text: 'Remote_host',
-          value: 'Remote_host'
+          text: 'Remote_addr',
+          value: 'remote_addr'
         },
         {
           text: 'Method',
-          value: 'Method'
+          value: 'method'
         },
         {
           text: 'Path',
-          value: 'Path'
+          value: 'url'
         },
         {
           text: 'Version',
-          value: 'Version'
+          value: 'version'
         },
         {
           text: 'Status',
-          value: 'Status'
+          value: 'status'
         },
         {
-          text: 'Length',
-          value: 'Length'
+          text: 'Bytes',
+          value: 'bytes'
         },
         {
-          text: 'Label',
-          value: 'Label'
+          text: 'Class',
+          value: 'class'
         }
       ],
       chartData: [
@@ -129,7 +138,17 @@ export default {
   },
   computed: {
     logs () {
-      if (this.client) { return this.$store.state.logs.filter(x => x.Remote_host == this.client.Remote_host) }
+      if (this.client) {
+        if (this.onlyanomaly) {
+          return this.$store.state.logs.filter(x => (x.remote_addr == this.client.remote_addr) && x.class > 0)
+        }
+        return this.$store.state.logs.filter(x => x.remote_addr == this.client.remote_addr)
+      }
+    },
+    user_agent () {
+      let user_agent = parser(this.client.user_agent)
+      // console.log(user_agent)
+      return user_agent
     }
   }
 }
@@ -138,5 +157,9 @@ export default {
   .v-card__title {
     padding: 10px;
     padding-bottom: 0px;
+  }
+
+  .anomaly:hover{
+    background-color: rgba(255, 0, 0, .8)!important;
   }
 </style>

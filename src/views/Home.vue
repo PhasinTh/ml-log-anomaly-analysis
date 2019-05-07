@@ -29,8 +29,8 @@
               </v-card-title>
               <v-card-text text-sm-center>
                 <h4>Total line : <span v-if="logs.length">{{ logs.length }}</span></h4><v-divider></v-divider>
-                <h4>From : <v-chip color="green" text-color="white" v-if="logs.length" small>{{ moment(logs[0].Date_time, 'DD/MMMM/YYYY:hh:mm:ss z').format('LLL') }}</v-chip></h4><v-divider></v-divider>
-                <h4>To : <v-chip color="green" text-color="white" v-if="logs.length" small>{{ moment(logs[logs.length - 1].Date_time, 'DD/MMMM/YYYY:hh:mm:ss z').format('LLL') }}</v-chip></h4>
+                <h4>From : <v-chip color="green" text-color="white" v-if="logs.length" small>{{ moment(logs[0].timestamp, 'DD/MMMM/YYYY:hh:mm:ss z').format('LLL') }}</v-chip></h4><v-divider></v-divider>
+                <h4>To : <v-chip color="green" text-color="white" v-if="logs.length" small>{{ moment(logs[logs.length - 1].timestamp, 'DD/MMMM/YYYY:hh:mm:ss z').format('LLL') }}</v-chip></h4>
               </v-card-text>
             </v-layout>
           </v-card>
@@ -42,7 +42,7 @@
                 <h3>Total Prediction Anomaly</h3>
               </v-card-title>
               <v-card-text>
-                <h2>{{ total_attack }}</h2>
+                <h2>{{ total_attack }} FROM {{ logs.length }}</h2>
               </v-card-text>
             </v-layout>
           </v-card>
@@ -54,7 +54,9 @@
     </v-flex>
     <v-flex xs10 mt-3>
       <v-layout row wrap justify-space-between>
-        <v-switch label="Prediction" v-model="hilight" ></v-switch>
+        <v-switch label="Hilight" v-model="hilight" ></v-switch>
+        <v-switch label="Show only anomaly" v-model="onlyanomaly" ></v-switch>
+        <v-btn color="green darken-1" flat @click="save_csv">Export</v-btn>
         <v-flex xs6 pl-3>
           <v-text-field
             v-model="search"
@@ -74,16 +76,16 @@
       <template
       slot="items"
       slot-scope="props">
-      <tr v-bind:class="[(props.item.Label > 0 && hilight) ? 'anomaly' : '']">
-        <td>{{ props.index }}</td>
-        <td>{{ moment(props.item.Date_time, 'DD/MMMM/YYYY:hh:mm:ss z').format('lll') }}</td>
-        <td><span @click="detail(props.item.Remote_host)">{{ props.item.Remote_host }}</span></td>
-        <td>{{ props.item.Method }}</td>
-        <td>{{ props.item.Path }}</td>
-        <td>{{ props.item.Version }}</td>
-        <td>{{ props.item.Status }}</td>
-        <td>{{ props.item.Length }}</td>
-        <td>{{ props.item.Label }}</td>
+      <tr v-bind:class="[(props.item.class > 0 && hilight) ? 'anomaly' : '']">
+        <td>{{ props.item.line }}</td>
+        <td>{{ moment(props.item.timestamp, 'DD/MMMM/YYYY:hh:mm:ss z').format('lll') }}</td>
+        <td><span @click="detail(props.item.Remote_host)">{{ props.item.remote_addr }}</span></td>
+        <td>{{ props.item.method }}</td>
+        <td>{{ props.item.url }}</td>
+        <td>{{ props.item.version }}</td>
+        <td>{{ props.item.status }}</td>
+        <td>{{ props.item.bytes }}</td>
+        <td>{{ props.item.class }}</td>
       </tr>
       </template>
     </v-data-table>
@@ -109,11 +111,13 @@
 import Upload from '@/components/Upload.vue'
 import Top10 from '@/components/Top10.vue'
 import Details from '@/components/Details.vue'
+const ObjectsToCsv = require('objects-to-csv')
 export default {
   name: 'home',
   data () {
     return {
       hilight: true,
+      onlyanomaly: false,
       host_ip: '',
       search: '',
       dialog: false,
@@ -125,36 +129,36 @@ export default {
           value: 'index'
         },
         {
-          text: 'Date_time',
-          value: 'Date_time'
+          text: 'Timestamp',
+          value: 'timestamp'
         },
         {
-          text: 'Remote_host',
-          value: 'Remote_host'
+          text: 'Remote_addr',
+          value: 'remote_addr'
         },
         {
           text: 'Method',
-          value: 'Method'
+          value: 'method'
         },
         {
           text: 'Path',
-          value: 'Path'
+          value: 'url'
         },
         {
           text: 'Version',
-          value: 'Version'
+          value: 'version'
         },
         {
           text: 'Status',
-          value: 'Status'
+          value: 'status'
         },
         {
           text: 'Bytes',
-          value: 'Length'
+          value: 'bytes'
         },
         {
-          text: 'Label',
-          value: 'Label'
+          text: 'Class',
+          value: 'class'
         }
       ]
     }
@@ -162,8 +166,16 @@ export default {
   methods: {
     detail (ip) {
       this.host_ip = ip
-      this.focus_log = this.logs.filter(x => x.Remote_host == ip)
+      this.focus_log = this.logs.filter(x => x.remote_addr == ip)
       this.dialog = true
+    },
+    save_csv () {
+      (async () => {
+        let csv = new ObjectsToCsv(this.logs)
+
+        // Save to file:
+        await csv.toDisk('./test.csv')
+      })()
     }
   },
   components: {
@@ -176,6 +188,9 @@ export default {
       return this.$store.state.logs.length === 0
     },
     logs () {
+      if (this.onlyanomaly) {
+        return this.$store.state.logs.filter(x => x.class > 0)
+      }
       return this.$store.state.logs
     },
     file () {
