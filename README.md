@@ -1,3 +1,26 @@
+# Detecting Malicious Log in Access Log
+
+
+## Development with Docker
+* Install dependencies and Build Vue production:
+
+	```
+	$ npm install
+	$ npm run build
+	```
+
+* Build:
+
+	```
+	$ docker build -t malicious-log-detect .
+	```
+
+* Deploy:
+
+	```
+	$ docker run -p 80:5000 malicious-log-detect
+	```
+
 # Flask-VueJs-Template 🌶️✌
 
 [![Build Status](https://travis-ci.org/gtalarico/flask-vuejs-template.svg?branch=master)](https://travis-ci.org/gtalarico/flask-vuejs-template)

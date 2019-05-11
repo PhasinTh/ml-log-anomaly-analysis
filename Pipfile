@@ -14,8 +14,10 @@ sklearn = "*"
 geoip2 = "*"
 ua-parser = "*"
 joblib = "*"
-pyton-geoip = "*"
 python-geoip-geolite2 = "*"
+keras = "*"
+tensorflow = "*"
+gevent = "*"
 
 [dev-packages]
 pytest = "*"

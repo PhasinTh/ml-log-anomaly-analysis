@@ -2,8 +2,7 @@ import axios from 'axios'
 
 let $axios = axios.create({
   baseURL: '/api/',
-  timeout: 1000 * 60 * 60 * 60,
-  maxContentLength: 1024 * 1024 * 1024 * 1024,
+  timeout: 1000 * 60 * 10,
   headers: { 'Content-Type': 'application/json' }
 })
 
@@ -46,5 +45,12 @@ export default {
       return $axios.post('download/' + ip)
     }
     return $axios.post('download')
+  },
+
+  prediction (log) {
+    let formData = new FormData()
+    formData.append('log', JSON.stringify(log))
+    return $axios.post('prediction', formData)
+      .then(response => response.data)
   }
 }

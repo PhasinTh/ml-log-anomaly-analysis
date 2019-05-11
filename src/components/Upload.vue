@@ -37,6 +37,7 @@
 <script>
 import $backend from '../backend'
 import axios from 'axios'
+import { error } from 'util';
 
 export default {
   name: 'upload',
@@ -55,21 +56,46 @@ export default {
       this.$store.state.file = files[0]
       // console.log(require('fs'))
     },
-    readFile (file) {
-      let filereader = new FileReader()
-    },
     upload (file) {
       let start = performance.now()
       this.loading = true
       $backend.uploadFile(file)
         .then(response => {
           console.log(performance.now() - start)
-          console.log(response)
+          // console.log(response)
           this.loading = false
           if (response.data) {
             let data = JSON.parse(response.data)
-            this.$store.commit('setLogs', data)
+            // console.log(JSON.stringify(data))
+            this.$store.commit('setLogs', Object.freeze(data))
+            
+            // $backend.prediction(data).then(res => {
+            //   console.log(res)
+            //   this.$store.commit('setLogs', res.data)
+            // })
+            // let promises = []
+            // $backend.prediction(data).then(res => {
+            //   console.log(res)
+            //   let data = JSON.parse(res.data)
+            //   this.$store.commit('setLogs', data)
+            // })
+            // promises.push($backend.prediction(data.slice(data.length / 2 + 1, data.length - 1)))
+
+            // data.forEach(element => {
+            //   promises.push($backend.prediction(element))
+            // })
+
+            // axios.all(promises).then(results => {
+            //   // console.log(results)
+            //   let temp = results.map(x => Object.freeze(x.data))
+            //   // console.log(temp)
+            //   // this.$store.commit('setLogs', temp)
+            // })
           }
+        })
+        .catch(error => {
+          this.loading = false
+          alert('cannot connect to the server')
         })
     }
   }

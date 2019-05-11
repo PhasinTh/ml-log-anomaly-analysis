@@ -76,12 +76,12 @@
       <template
       slot="items"
       slot-scope="props">
-      <tr v-bind:class="[(props.item.class > 0 && hilight) ? 'anomaly' : '']">
+      <tr v-bind:class="[(props.item.class !== 'N' && hilight) ? 'anomaly' : '']">
         <td>{{ props.item.line }}</td>
         <td>{{ moment(props.item.timestamp, 'DD/MMMM/YYYY:hh:mm:ss z').format('lll') }}</td>
-        <td><span @click="detail(props.item.Remote_host)">{{ props.item.remote_addr }}</span></td>
+        <td><span @click="detail(props.item.remote_addr)">{{ props.item.remote_addr }}</span></td>
         <td>{{ props.item.method }}</td>
-        <td>{{ props.item.url }}</td>
+        <td>{{ props.item.path }}</td>
         <td>{{ props.item.version }}</td>
         <td>{{ props.item.status }}</td>
         <td>{{ props.item.bytes }}</td>
@@ -91,18 +91,18 @@
     </v-data-table>
     </v-flex>
   </v-layout>
-  <v-dialog v-model="dialog" persistent max-width="80%">
-    <v-card>
-      <v-card-title class="headline">
-        Detail Host IP : <span class="red--text">{{ host_ip }}</span>
-        <v-spacer></v-spacer>
-        <v-btn color="green darken-1" flat @click="dialog = false">close</v-btn>
-      </v-card-title>
-      <v-card-text>
-        <Details :logs="focus_log" />
-      </v-card-text>
-    </v-card>
-  </v-dialog>
+     <v-dialog v-model="dialog" persistent fullscreen >
+      <v-card>
+        <v-card-title class="headline">
+          Detail Host IP : <span class="red--text">{{ host_ip }}</span>
+          <v-spacer></v-spacer>
+          <v-btn color="green darken-1" flat @click="dialog = false">close</v-btn>
+        </v-card-title>
+        <v-card-text>
+          <Details :client="focus_log" />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -124,7 +124,7 @@ export default {
       headers: [
         {
           text: 'Line',
-          value: 'index'
+          value: 'line'
         },
         {
           text: 'Timestamp',
@@ -164,7 +164,7 @@ export default {
   methods: {
     detail (ip) {
       this.host_ip = ip
-      this.focus_log = this.logs.filter(x => x.remote_addr == ip)
+      this.focus_log = this.logs.filter(x => x.remote_addr === ip)[0]
       this.dialog = true
     },
     convertToCSV (objArray) {
@@ -222,7 +222,7 @@ export default {
           timestamp: x.timestamp,
           remote_addr: x.remote_addr,
           method: x.method,
-          url: x.url,
+          url: x.path,
           version: x.version,
           status: x.status,
           bytes: x.bytes,
@@ -245,9 +245,9 @@ export default {
     },
     logs () {
       if (this.onlyanomaly) {
-        return this.$store.state.logs.filter(x => x.class > 0)
+        return Object.freeze(this.$store.state.logs.filter(x => x.class !== 'N'))
       }
-      return this.$store.state.logs
+      return Object.freeze(this.$store.state.logs)
     },
     file () {
       return this.$store.state.file

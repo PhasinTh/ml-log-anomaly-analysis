@@ -19,10 +19,11 @@
       <v-flex xs5 pl-3>
         <v-card height="280">
           <v-card-title>
-            <h3>Country:</h3> <h4 v-if="client"> Thailand</h4>
+            <h3>Country:</h3> <h4 v-if="client"> {{ client.country }}</h4>
           </v-card-title>
           <v-card-text>
-            <GChart type="GeoChart" :data="chartData" :options="chartOptions" :resizeDebounce="500" />
+            <div v-if="client" ref="regions_div" style="width: 100%;height:200px;"></div>
+
           </v-card-text>
         </v-card>
       </v-flex>
@@ -51,12 +52,12 @@
       <template
       slot="items"
       slot-scope="props">
-      <tr v-bind:class="[(props.item.class > 0 && hilight) > 0 ? 'anomaly' : '']">
+      <tr v-bind:class="[(props.item.class !== 'N' && hilight) ? 'anomaly' : '']">
         <td>{{ props.item.line }}</td>
         <td>{{ props.item.timestamp }}</td>
         <td >{{ props.item.remote_addr }}</td>
         <td>{{ props.item.method }}</td>
-        <td class="text-xs-left">{{ props.item.url }}</td>
+        <td class="text-xs-left">{{ props.item.path }}</td>
         <td>{{ props.item.version }}</td>
         <td>{{ props.item.status }}</td>
         <td>{{ props.item.bytes }}</td>
@@ -67,12 +68,15 @@
   </div>
 </template>
 <script>
-import { GChart } from 'vue-google-charts'
+import { GoogleCharts } from 'google-charts'
 import axios from 'axios'
 const parser = require('ua-parser-js')
 export default {
   mounted () {
-    // console.log(this.client.country)
+    GoogleCharts.load(this.drawRegionsMap, {
+      'packages': ['geochart'],
+      'mapsApiKey': 'AIzaSyD'
+    })
   },
   methods: {
     convertToCSV (objArray) {
@@ -140,18 +144,32 @@ export default {
 
       let fileTitle = 'log_'+ this.client.remote_addr +'.csv'
       this.exportCSVFile(headers, itemsFormatted, fileTitle)
+    },
+    drawRegionsMap () {
+      this.chart = new GoogleCharts.api.visualization.GeoChart(this.$refs.regions_div)
     }
   },
   props: ['client'],
   components: {
-    GChart
+  },
+  watch: {
+    client: function (vale) {
+      this.chartOptions.region = vale.country
+      this.chartData = GoogleCharts.api.visualization.arrayToDataTable([['Country'],[vale.country]])
+      if (vale.country === 'N/a') {
+        this.chart.clearChart()
+      } else {
+        this.chart = new GoogleCharts.api.visualization.GeoChart(this.$refs.regions_div)
+        this.chart.draw(this.chartData,this.chartOptions)
+      }
+
+    }
   },
   data () {
     return {
+      chart: null,
       hilight: true,
       onlyanomaly: false,
-      country: 'Thailand',
-      region: 'TH',
       search: '',
       pagination: { rowsPerPage: 10 },
       headers: [
@@ -192,20 +210,15 @@ export default {
           value: 'class'
         }
       ],
-      chartData: [
-        ['Country'],
-        ['Thailand']
-      ],
-      chartOptions: {
-        height: 200, region: 'TH', width: '100%'
-      }
+      chartData: [],
+      chartOptions: {}
     }
   },
   computed: {
     logs () {
       if (this.client) {
         if (this.onlyanomaly) {
-          return this.$store.state.logs.filter(x => (x.remote_addr == this.client.remote_addr) && x.class > 0)
+          return this.$store.state.logs.filter(x => (x.remote_addr == this.client.remote_addr) && x.class !== 'N')
         }
         return this.$store.state.logs.filter(x => x.remote_addr == this.client.remote_addr)
       }

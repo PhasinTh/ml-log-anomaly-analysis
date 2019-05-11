@@ -20,8 +20,9 @@ class MLProcess(object):
     self.data = self.loadata()
     self.format = self.autoformat()
     self.pattern = self.build_pattern(self.format)
+    print(self.pattern)
     self.here = os.path.dirname(os.path.abspath(__file__))
-    self.reader_country = geoip2.database.Reader(os.path.join(self.here, "GeoLite2-Country.mmdb"))
+    # self.reader_country = geoip2.database.Reader(os.path.join(self.here, "GeoLite2-Country.mmdb"))
     self.parsedata = list(self.parse(self.data, self.pattern))
     self.features = self.preprocess(self.parsedata)
     self.country = {}
@@ -75,15 +76,22 @@ class MLProcess(object):
     for count, line in enumerate(data.split('\n')):
       line = line.strip()
       if line:
-        match = pattern.match(line)
-        item = match.groupdict()
-        item['status'] = int(item['status'])
-        item['bytes'] = int(item['bytes'])
-        match = re.match('^(\w+)\s+(.*?)\s+(.*?)$', item['request'])
-        if match:
-          item['method'], item['url'], item['version'] = match.groups()
-          del item['request']
-        yield item
+        try:
+          match = pattern.match(line)
+          if match:
+            item = match.groupdict()
+            item['status'] = int(item['status'])
+            item['bytes'] = int(item['bytes'])
+            match = re.match('^(\w+)\s+(.*?)\s+(.*?)$', str(item['request']))
+            if match:
+              item['method'], item['path'], item['version'] = match.groups()
+              del item['request']
+          else:
+            print('err',line)
+          yield item
+        except:
+          print('err',line)
+
           # print(self.get_country(item['remote_addr']))
         # if item['remote_addr'] in self.country:
         #   item['country'] = self.country[item['remote_addr']]
@@ -132,16 +140,23 @@ class MLProcess(object):
         httpmethod = self.fill_method(_['method'])
         # numerical feature (bytes, len(url), len(query))
         bodybytes = self.safelog(_['bytes'])
-        parseurl = urlparse(_['url'])
+        parseurl = urlparse(_['path'])
         path = self.safelog(len(parseurl.path))
         query = self.safelog(len(parseurl.query))
-  #             lenpath = safelog(_['url'])
+  #             lenpath = safelog(_['path'])
   #         if query == 0:
-  #             print('path: {} query {} : len {}'.format(_['url'],parseurl.query,query))
+  #             print('path: {} query {} : len {}'.format(_['path'],parseurl.query,query))
         features.append(status+httpmethod+[bodybytes,path,query])
       except:
         pass
     return features
+  
+  def getLogs(self):
+    temp = self.parsedata
+    for i in range(len(temp)):
+      temp[i]['line'] = i + 1
+    data = pd.DataFrame.from_dict(temp)
+    return data.to_json(orient='records')
 
   def prediction(self):
     # print(self.parsedata[0])

@@ -1,4 +1,4 @@
-Remote_host,Identd,REMOTE_USER,Date_time,Method,Path,Version,Status,Length,Label
+remote_addr,Identd,REMOTE_USER,timestamp,method,url,version,status,bytes,class
 172.17.0.1,-,-,12/Feb/2019:08:21:50 +0000,GET,/?password=%3CIMG+SRC%3D%22javascript%3Aalert%28%27XSS%27%29%3B%22%3E,HTTP/1.1,302,300,1.0
 172.17.0.1,-,-,12/Feb/2019:08:55:13 +0000,GET,/login.php,HTTP/1.1,200,1795,0.0
 172.17.0.1,-,-,12/Feb/2019:08:21:25 +0000,GET,/?password=OR+1%3D1,HTTP/1.1,302,300,2.0

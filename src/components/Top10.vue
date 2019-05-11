@@ -115,19 +115,28 @@ export default {
       return [...new Set(this.logs.map(x => x.remote_addr))]
     },
     attack_type () {
-      let test = []
+      let test = [0,0,0,0]
       this.attack_total = this.logs.filter(function (x) {
-        test[x.class] = test[x.class] >= 0 ? test[x.class] += 1 : 0
-        return x.class > 0
+        let index = 0
+        if (x.class === 'XSS') {
+          index = 1
+        } else if (x.class === 'SQLi') {
+          index = 2
+        } else if (x.class === 'DT') {
+          index = 3
+        }
+        test[index] = test[index] >= 0 ? test[index] += 1 : 0
+        return x.class !== 'N'
       }).length
       this.$store.state.total_attack = this.attack_total
+      // console.log(test)
       return test.slice(1)
     },
     attacker () {
       let attacker = []
       let temp = {}
       this.logs.forEach(x => {
-        if (x.class > 0) {
+        if (x.class !== 'N') {
           temp[x.remote_addr] = temp[x.remote_addr] >= 0 ? temp[x.remote_addr] += 1 : 0
         }
         // temp[x.remote_addr] = temp[x.remote_addr] >= 0 ? temp[x.remote_addr] += 1 : 0 // test
