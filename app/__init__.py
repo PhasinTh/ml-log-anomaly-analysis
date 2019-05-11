@@ -42,7 +42,7 @@ def parse(data, pattern):
     if line:
       match = pattern.match(line)
       if not match:
-        pattern = build_pattern(autoformat(line))
+        pattern = build_pattern(autoformat(line))5
         match = pattern.match(line)
 
       if match:
