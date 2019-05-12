@@ -10,8 +10,8 @@ from collections import OrderedDict
 import geoip2.database
 from geoip2.errors import AddressNotFoundError
 
-from keras.preprocessing import sequence
-from keras.models import load_model
+# from keras.preprocessing import sequence
+# from keras.models import load_model
 
 import re
 from joblib import dump, load
@@ -42,7 +42,7 @@ def parse(data, pattern):
     if line:
       match = pattern.match(line)
       if not match:
-        pattern = build_pattern(autoformat(line))5
+        pattern = build_pattern(autoformat(line))
         match = pattern.match(line)
 
       if match:
