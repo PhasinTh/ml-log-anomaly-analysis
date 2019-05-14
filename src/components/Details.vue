@@ -19,7 +19,7 @@
       <v-flex xs5 pl-3>
         <v-card height="280">
           <v-card-title>
-            <h3>Country:</h3> <h4 v-if="client"> {{ client.country }}</h4>
+            <h3>Country:</h3> <h4 v-if="country"> {{ country }}</h4>
           </v-card-title>
           <v-card-text>
             <div v-if="client" ref="regions_div" style="width: 100%;height:200px;"></div>
@@ -154,19 +154,22 @@ export default {
   },
   watch: {
     client: function (vale) {
-      this.chartOptions.region = vale.country
-      this.chartData = GoogleCharts.api.visualization.arrayToDataTable([['Country'],[vale.country]])
-      if (vale.country === 'N/a') {
-        this.chart.clearChart()
-      } else {
-        this.chart = new GoogleCharts.api.visualization.GeoChart(this.$refs.regions_div)
-        this.chart.draw(this.chartData,this.chartOptions)
-      }
-
+      axios.get('https://freegeoip.app/json/' + vale.remote_addr).then(res => {
+        this.chartOptions.region = res.data.country_code
+        this.chartData = GoogleCharts.api.visualization.arrayToDataTable([['Country'],[res.data.country_name]])
+        if (res.data.country_name) {
+          this.country = res.data.country_name
+          this.chart = new GoogleCharts.api.visualization.GeoChart(this.$refs.regions_div)
+          this.chart.draw(this.chartData,this.chartOptions)
+        } else {
+          this.chart.clearChart()
+        }
+      })
     }
   },
   data () {
     return {
+      country: '',
       chart: null,
       hilight: true,
       onlyanomaly: false,

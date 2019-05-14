@@ -10,6 +10,8 @@ from collections import OrderedDict
 import geoip2.database
 from geoip2.errors import AddressNotFoundError
 
+import time
+
 # from keras.preprocessing import sequence
 # from keras.models import load_model
 
@@ -52,11 +54,12 @@ def parse(data, pattern):
           item['bytes'] = int(item['bytes'])
         else:
           item['bytes'] = 0
-        if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$",item['remote_addr']):
-          country = getCountry(str(item['remote_addr']))
-          item['country'] = country if country else 'N/a'
-        else:
-          item['country'] = 'N/a'
+        # if re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$",item['remote_addr']):
+        #   # print('pass')
+        #   country = getCountry(str(item['remote_addr']))
+        #   item['country'] = country if country else 'N/a'
+        # else:
+        #   item['country'] = 'N/a'
         match = re.match('^(\w+)\s+(.*?)\s+(.*?)$', str(item['request']))
         if match:
           item['method'], item['path'], item['version'] = match.groups()
@@ -108,6 +111,7 @@ def index_client():
 
 @app.route('/api/uploadfile', methods=["POST"])
 def fileupload():
+  start = time.time()
   file = request.files['file']
   buffer_size=16384
   data = bytearray()
@@ -117,22 +121,40 @@ def fileupload():
       break
     data.extend(buff)
   logs = data.decode('utf-8')
+  end = time.time()
+  print("read file take time {}".format(end - start))
 
+  start = time.time()
   # auto format
   test = logs.split('\n')[0]
   format = autoformat(test)
+  end = time.time()
+  print("auto format take time {}".format(end - start))
 
+  start = time.time()
   # parser
   pattern = build_pattern(format)
   data = list(parse(logs, pattern))
+  end = time.time()
+  print("parsing take time {}".format(end - start))
 
   newlist = [x['path'] for x in data]
+  start = time.time()
   pred = predict(newlist)
+  end = time.time()
+  print("prediction take time {}".format(end - start))
+  start = time.time()
   for i in range(len(data)):
     data[i]['line'] = i + 1
     data[i]['class'] = pred[i]
+  end = time.time()
+  print("labeling take time {}".format(end - start))
+  start = time.time()
   df = pd.DataFrame.from_dict(data)
-  return jsonify({"data": df.to_json(orient='records')})
+  json = df.to_json(orient='records')
+  end = time.time()
+  print("json parsing take time {}".format(end - start))
+  return jsonify({"data": json})
 
 # @app.route("/api/prediction", methods=["POST"])
 # def predict():

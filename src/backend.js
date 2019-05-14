@@ -3,6 +3,7 @@ import axios from 'axios'
 let $axios = axios.create({
   baseURL: '/api/',
   timeout: 1000 * 60 * 10,
+  // maxContentLength: 1024 * 500,
   headers: { 'Content-Type': 'application/json' }
 })
 
