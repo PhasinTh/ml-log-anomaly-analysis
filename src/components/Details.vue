@@ -54,7 +54,7 @@
       slot-scope="props">
       <tr v-bind:class="[(props.item.class !== 'N' && hilight) ? 'anomaly' : '']">
         <td>{{ props.item.line }}</td>
-        <td>{{ props.item.timestamp }}</td>
+        <td>{{ moment(props.item.timestamp, 'DD/MMMM/YYYY:hh:mm:ss z').format('lll') }}</td>
         <td >{{ props.item.remote_addr }}</td>
         <td>{{ props.item.method }}</td>
         <td class="text-xs-left">{{ props.item.path }}</td>

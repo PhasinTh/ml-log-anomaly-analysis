@@ -47,6 +47,7 @@ The Vue instance is preconfigured with Filters, Vue-Router, Vuex; each of these 
 | `/public/index.html` | Html Application Entry Point (`/`)         |
 | `/public/static`     | Static Assets                              |
 | `/dist/`             | Bundled Assets Output (generated at `yarn build` |
+| `/models/`           | Machine Learning Models                    |
 
 
 ## Installation

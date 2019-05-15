@@ -32,7 +32,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 def getCountry(ip):
   try:
-    reader_country = geoip2.database.Reader(os.path.join(here, 'GeoLite2-Country.mmdb'))
+    reader_country = geoip2.database.Reader(os.path.join(here, 'utils/GeoLite2-Country.mmdb'))
     return reader_country.country(ip).country.iso_code
   except AddressNotFoundError :
     return 'N/a'
@@ -80,8 +80,8 @@ def build_pattern(format):
 
 # def build_model():
 #   global model
-#   model = load_model(os.path.join(here, "rnn-model.h5"))
-#   model.load_weights(os.path.join(here, "rnn-weights.h5"))
+#   model = load_model(os.path.join(here, "models/rnn-model.h5"))
+#   model.load_weights(os.path.join(here, "models/rnn-weights.h5"))
 #   model.compile(loss = 'categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
 
 def autoformat(test):
@@ -98,7 +98,7 @@ def autoformat(test):
   return format
 
 def predict(x):
-  char_vectorizer = load(os.path.join(here,'char_vectorizer'))
+  char_vectorizer = load(os.path.join(here,'utils/char_vectorizer'))
   log_entry_processed = char_vectorizer.transform(x)
   clf = load(os.path.join(here,'models/Random Forest.joblib'))
   return clf.predict(log_entry_processed)
@@ -172,7 +172,7 @@ def fileupload():
 #       X['Query'] = str(parse.query) if parse.query else str({})
 #       logs[index] = json.dumps(X, separators=(',', ':'))
 
-#     with open(os.path.join(here, 'tokenizer.pickle'), 'rb') as handle:
+#     with open(os.path.join(here, 'models/tokenizer.pickle'), 'rb') as handle:
 #       ptokenizer = pickle.load(handle)
 
 #     max_log_length = 1024
@@ -180,7 +180,7 @@ def fileupload():
 #     log_entry_processed = sequence.pad_sequences(seq, maxlen=max_log_length)
 
 #     # from joblib import load
-#     # clf = load(os.path.join(here, 'Random Forest.joblib'))
+#     # clf = load(os.path.join(here, 'models/Random Forest.joblib'))
 #     # pred = clf.predict(log_entry_processed)
 
 
