@@ -5,8 +5,8 @@
 
 	yarn
 	```
-	$ yarn install # npm install
-	$ yarn run build # npm run build
+	$ yarn install
+	$ yarn run build
 	```
 
 	npm
