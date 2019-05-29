@@ -3,6 +3,13 @@
 ## Production with Docker
 * Install dependencies and Build Vue production:
 
+	yarn
+	```
+	$ yarn install # npm install
+	$ yarn run build # npm run build
+	```
+
+	npm
 	```
 	$ npm install
 	$ npm run build
