@@ -1,32 +1,5 @@
 # Detecting Malicious Log in Access Log
 
-## Production with Docker
-* Install dependencies and Build Vue production:
-
-	yarn
-	```
-	$ yarn install
-	$ yarn run build
-	```
-
-	npm
-	```
-	$ npm install
-	$ npm run build
-	```
-
-* Build:
-
-	```
-	$ docker build -t malicious-log-detect .
-	```
-
-* Deploy:
-
-	```
-	$ docker run -p 80:5000 malicious-log-detect
-	```
-
 ## Application Structure
 
 ### Rest Api
@@ -115,6 +88,32 @@ $ yarn build
 $ python run.py
 ```
 
+## Production with Docker
+* Install dependencies and Build Vue production:
+
+	yarn
+	```
+	$ yarn install
+	$ yarn run build
+	```
+
+	npm
+	```
+	$ npm install
+	$ npm run build
+	```
+
+* Build:
+
+	```
+	$ docker build -t malicious-log-detect .
+	```
+
+* Deploy:
+
+	```
+	$ docker run -p 80:5000 malicious-log-detect
+	```
 
 ## Production Server
 
