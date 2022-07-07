@@ -12,7 +12,7 @@
     "apexcharts": "^3.6.9",
     "axios": "^0.18.0",
     "google-charts": "^2.0.0",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "node-gyp": "^4.0.0",
     "objects-to-csv": "^1.2.1",
     "ua-parser-js": "^0.7.19",
